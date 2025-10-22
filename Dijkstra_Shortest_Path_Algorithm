@@ -1,0 +1,104 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+#include <stack>
+using namespace std;
+
+/*
+    Dijkstra's Algorithm
+    --------------------
+    Finds the shortest path from a source vertex to all other vertices
+    in a weighted graph (with non-negative weights).
+
+    Time Complexity: O(E log V)
+    Space Complexity: O(V + E)
+*/
+
+struct Edge {
+    int to;
+    int weight;
+};
+
+void dijkstra(int start, const vector<vector<Edge>>& graph) {
+    int n = graph.size();
+    vector<int> dist(n, INT_MAX);     // shortest distances
+    vector<int> parent(n, -1);        // to reconstruct path
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+
+    dist[start] = 0;
+    pq.push({0, start});  // (distance, node)
+
+    while (!pq.empty()) {
+        int currentDist = pq.top().first;
+        int u = pq.top().second;
+        pq.pop();
+
+        // If this distance is not updated, skip it
+        if (currentDist > dist[u])
+            continue;
+
+        // Explore neighbors
+        for (auto& edge : graph[u]) {
+            int v = edge.to;
+            int weight = edge.weight;
+
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                parent[v] = u;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    // Print shortest distances
+    cout << "\nShortest distances from node " << start << ":\n";
+    for (int i = 0; i < n; i++) {
+        cout << "To " << i << " → " << (dist[i] == INT_MAX ? -1 : dist[i]) << endl;
+    }
+
+    // Print paths
+    cout << "\nShortest Paths:\n";
+    for (int i = 0; i < n; i++) {
+        if (i == start) continue;
+        cout << "Path to " << i << ": ";
+        if (dist[i] == INT_MAX) {
+            cout << "No path\n";
+            continue;
+        }
+
+        stack<int> path;
+        for (int v = i; v != -1; v = parent[v])
+            path.push(v);
+
+        while (!path.empty()) {
+            cout << path.top();
+            path.pop();
+            if (!path.empty()) cout << " -> ";
+        }
+        cout << "  (Distance: " << dist[i] << ")\n";
+    }
+}
+
+int main() {
+    int vertices, edges;
+    cout << "Enter number of vertices and edges: ";
+    cin >> vertices >> edges;
+
+    vector<vector<Edge>> graph(vertices);
+
+    cout << "Enter edges (u v w):\n";
+    for (int i = 0; i < edges; i++) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        graph[u].push_back({v, w});
+        graph[v].push_back({u, w}); // remove this line if graph is directed
+    }
+
+    int start;
+    cout << "Enter starting node: ";
+    cin >> start;
+
+    dijkstra(start, graph);
+    return 0;
+}
